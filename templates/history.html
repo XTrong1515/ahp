@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Lịch sử đợt tuyển dụng</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        body {
+            background-color: #f8f9fa;
+        }
+        .container {
+            max-width: 1200px;
+        }
+        .list-group-item {
+            border-radius: 10px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container mt-5">
+        <h1 class="text-center mb-4">Lịch sử đợt tuyển dụng</h1>
+        <div class="card">
+            <div class="card-body">
+                {% if rounds %}
+                <ul class="list-group">
+                    {% for round in rounds %}
+                    <li class="list-group-item d-flex justify-content-between align-items-center">
+                        <a href="/round/{{ round.round_id }}">{{ round.round_name }} ({{ round.position }})</a>
+                        <div>
+                            <span class="text-muted me-3">{{ round.created_at.strftime('%Y-%m-%d %H:%M:%S') }}</span>
+                            <button type="button" class="btn btn-danger btn-sm" data-bs-toggle="modal" data-bs-target="#deleteModal{{ round.round_id }}">Xóa</button>
+                        </div>
+                    </li>
+
+                    <!-- Modal xác nhận xóa -->
+                    <div class="modal fade" id="deleteModal{{ round.round_id }}" tabindex="-1" aria-labelledby="deleteModalLabel{{ round.round_id }}" aria-hidden="true">
+                        <div class="modal-dialog">
+                            <div class="modal-content">
+                                <div class="modal-header">
+                                    <h5 class="modal-title" id="deleteModalLabel{{ round.round_id }}">Xác nhận xóa</h5>
+                                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                                </div>
+                                <div class="modal-body">
+                                    Bạn có chắc chắn muốn xóa đợt tuyển dụng "{{ round.round_name }}" không? Hành động này không thể hoàn tác.
+                                </div>
+                                <div class="modal-footer">
+                                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Hủy</button>
+                                    <a href="/delete_round/{{ round.round_id }}" class="btn btn-danger">Xóa</a>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </ul>
+                {% else %}
+                <p class="text-center">Chưa có đợt tuyển dụng nào.</p>
+                {% endif %}
+                <div class="mt-4 text-center">
+                    <a href="/" class="btn btn-primary">Tạo đợt tuyển dụng mới</a>
+                </div>
+            </div>
+        </div>
+    </div>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

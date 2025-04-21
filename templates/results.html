@@ -1,53 +1,127 @@
 <!DOCTYPE html>
-<html lang="vi">
-
+<html>
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Kết quả - Hệ Hỗ Trợ Ra Quyết Định</title>
-    <!-- Bootstrap CSS -->
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-    <link rel="stylesheet" href="../static/styles.css">
+    <title>Kết quả tính toán AHP</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4.6.0/dist/css/bootstrap.min.css">
 </head>
-
 <body>
     <div class="container mt-5">
-        <h1 class="text-center mb-4">Kết quả</h1>
-
+        <h1 class="mb-4">Kết quả tính toán AHP</h1>
+        
         <div class="card mb-4">
-            <div class="card-header bg-success text-white">
-                <h3 class="mb-0">Trọng số tiêu chí</h3>
+            <div class="card-header">
+                <h3>Trọng số tiêu chí</h3>
             </div>
             <div class="card-body">
-                <ul class="list-group list-group-flush">
-                    {% for i in range(criteria|length) %}
-                    <li class="list-group-item">{{ criteria[i] }}: {{ weights[i]|round(4) }}</li>
-                    {% endfor %}
-                </ul>
-            </div>
-        </div>
-
-        <div class="alert {{ 'alert-success' if cr < 0.1 else 'alert-warning' }} mb-4" role="alert">
-            Consistency Ratio (CR): {{ cr|round(4) }} ({{ 'Nhất quán' if cr < 0.1 else 'Không nhất quán' }}) </div>
-
-                <div class="card">
-                    <div class="card-header bg-success text-white">
-                        <h3 class="mb-0">Xếp hạng ứng viên</h3>
+                <div class="row">
+                    <div class="col-md-6">
+                        <table class="table table-bordered">
+                            <thead>
+                                <tr>
+                                    <th>Tiêu chí</th>
+                                    <th>Trọng số</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for i in range(criteria|length) %}
+                                <tr>
+                                    <td>{{ criteria[i] }}</td>
+                                    <td>{{ "%.4f"|format(weights[i]) }}</td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                        <p>Chỉ số nhất quán CR: {{ "%.4f"|format(cr) }}</p>
                     </div>
-                    <div class="card-body">
-                        <ol class="list-group list-group-numbered">
-                            {% for name, score in ranked %}
-                            <li class="list-group-item">{{ name }}: {{ score|round(4) }}</li>
-                            {% endfor %}
-                        </ol>
+                    <div class="col-md-6">
+                        <img src="data:image/png;base64,{{ criterion_weights_image }}" class="img-fluid" alt="Trọng số tiêu chí">
                     </div>
                 </div>
-
-                <a href="/" class="btn btn-primary mt-4">Quay lại</a>
+            </div>
         </div>
-
-        <!-- Bootstrap JS -->
-        <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+        
+        <div class="card mb-4">
+            <div class="card-header">
+                <h3>Ma trận so sánh cặp</h3>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-12">
+                        <img src="data:image/png;base64,{{ pairwise_matrix_image }}" class="img-fluid" alt="Ma trận so sánh cặp">
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="card mb-4">
+            <div class="card-header">
+                <h3>Đánh giá tính nhất quán</h3>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-12">
+                        <img src="data:image/png;base64,{{ consistency_chart_image }}" class="img-fluid" alt="Đánh giá tính nhất quán">
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="card mb-4">
+            <div class="card-header">
+                <h3>Kết quả xếp hạng ứng viên</h3>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-6">
+                        <table class="table table-bordered">
+                            <thead>
+                                <tr>
+                                    <th>Thứ hạng</th>
+                                    <th>Tên ứng viên</th>
+                                    <th>Điểm tổng hợp</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for i in range(ranked|length) %}
+                                <tr>
+                                    <td>{{ i+1 }}</td>
+                                    <td>{{ ranked[i][0] }}</td>
+                                    <td>{{ "%.4f"|format(ranked[i][1]) }}</td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                    <div class="col-md-6">
+                        <img src="data:image/png;base64,{{ candidate_score_image }}" class="img-fluid" alt="Điểm ứng viên">
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="card mb-4">
+            <div class="card-header">
+                <h3>Dữ liệu gốc của ứng viên</h3>
+            </div>
+            <div class="card-body">
+                <img src="data:image/png;base64,{{ raw_data_chart_image }}" class="img-fluid" alt="Dữ liệu gốc của ứng viên">
+            </div>
+        </div>
+        
+        <div class="card mb-4">
+            <div class="card-header">
+                <h3>So sánh ứng viên theo từng tiêu chí (đã nhân trọng số)</h3>
+            </div>
+            <div class="card-body">
+                <img src="data:image/png;base64,{{ criteria_comparison_image }}" class="img-fluid" alt="So sánh tiêu chí">
+            </div>
+        </div>
+        
+        <div class="text-center mb-5">
+            <a href="{{ url_for('export_report', round_id=round_id) }}" class="btn btn-primary">Xuất báo cáo PDF</a>
+            <a href="{{ url_for('history') }}" class="btn btn-secondary ml-2">Xem lịch sử</a>
+            <a href="{{ url_for('index') }}" class="btn btn-info ml-2">Tạo đợt tuyển dụng mới</a>
+        </div>
+    </div>
 </body>
-
 </html>

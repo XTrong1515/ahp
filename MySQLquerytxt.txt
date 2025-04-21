@@ -1,0 +1,49 @@
+CREATE DATABASE recruitment_ahp;
+
+USE recruitment_ahp;
+
+CREATE TABLE recruitment_rounds (
+    round_id INT AUTO_INCREMENT PRIMARY KEY,
+    round_name VARCHAR(255) NOT NULL,
+    description TEXT,
+    position VARCHAR(100) NOT NULL,
+    created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE TABLE recruitment_criteria (
+    criterion_id INT AUTO_INCREMENT PRIMARY KEY,
+    round_id INT NOT NULL,
+    criterion_name VARCHAR(100) NOT NULL,
+    is_custom BOOLEAN DEFAULT FALSE,
+    created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (round_id) REFERENCES recruitment_rounds(round_id)
+);
+
+CREATE TABLE criteria_matrix (
+    matrix_id INT AUTO_INCREMENT PRIMARY KEY,
+    round_id INT NOT NULL,
+    matrix_data JSON NOT NULL,
+    consistency_ratio FLOAT NOT NULL,
+    created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (round_id) REFERENCES recruitment_rounds(round_id)
+);
+
+CREATE TABLE candidates (
+    candidate_id INT AUTO_INCREMENT PRIMARY KEY,
+    round_id INT NOT NULL,
+    full_name VARCHAR(255) NOT NULL,
+    notes TEXT,
+    created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (round_id) REFERENCES recruitment_rounds(round_id)
+);
+
+CREATE TABLE candidate_scores (
+    score_id INT AUTO_INCREMENT PRIMARY KEY,
+    round_id INT NOT NULL,
+    candidate_id INT NOT NULL,
+    total_score FLOAT NOT NULL,
+    ranking INT NOT NULL,
+    created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (round_id) REFERENCES recruitment_rounds(round_id),
+    FOREIGN KEY (candidate_id) REFERENCES candidates(candidate_id)
+);

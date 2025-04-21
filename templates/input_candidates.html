@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Nhập thông tin ứng viên</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        body {
+            background-color: #f8f9fa;
+        }
+        .container {
+            max-width: 1200px;
+        }
+        .table th, .table td {
+            vertical-align: middle;
+        }
+    </style>
+</head>
+<body>
+    <div class="container mt-5">
+        <h1 class="text-center mb-4">Nhập thông tin ứng viên và so sánh tiêu chí</h1>
+        <div class="card">
+            <div class="card-body">
+                <form method="POST" action="/input/{{ round_id }}">
+                    <input type="hidden" name="num_candidates" value="{{ num_candidates }}">
+
+                    <h3 class="mb-3">Thông tin ứng viên</h3>
+                    {% for i in range(num_candidates) %}
+                    <div class="card mb-3">
+                        <div class="card-body">
+                            <div class="mb-3">
+                                <label class="form-label">Tên ứng viên {{ i + 1 }}:</label>
+                                <input type="text" class="form-control" name="candidate_{{ i }}" placeholder="Nhập họ tên" required>
+                            </div>
+                            <div class="row g-3">
+                                {% for j in range(criteria|length) %}
+                                <div class="col-md-4">
+                                    <label class="form-label">{{ criteria[j] }} (0-{{ optimal_values[j] }}):</label>
+                                    <input type="number" class="form-control" name="candidate_{{ i }}_criterion_{{ j }}" min="0" max="{{ optimal_values[j] }}" step="0.1" placeholder="Nhập giá trị" required>
+                                </div>
+                                {% endfor %}
+                            </div>
+                        </div>
+                    </div>
+                    {% endfor %}
+
+                    <h3 class="mb-3">Ma trận so sánh cặp tiêu chí</h3>
+                    <div class="table-responsive">
+                        <table class="table table-bordered table-hover">
+                            <thead class="table-primary">
+                                <tr>
+                                    <th scope="col"></th>
+                                    {% for criterion in criteria %}
+                                    <th scope="col">{{ criterion }}</th>
+                                    {% endfor %}
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for i in range(criteria|length) %}
+                                <tr>
+                                    <th scope="row">{{ criteria[i] }}</th>
+                                    {% for j in range(criteria|length) %}
+                                    <td>
+                                        {% if i == j %}
+                                        <input type="number" class="form-control form-control-sm" name="pairwise_{{ i }}_{{ j }}" value="1" readonly>
+                                        {% elif i < j %}
+                                        <input type="number" class="form-control form-control-sm" name="pairwise_{{ i }}_{{ j }}" value="{{ pairwise[i][j] }}" min="0.1" max="9" step="0.1" required>
+                                        {% else %}
+                                        <input type="number" class="form-control form-control-sm" name="pairwise_{{ i }}_{{ j }}" value="{{ (1/pairwise[j][i])|round(2) }}" readonly>
+                                        {% endif %}
+                                    </td>
+                                    {% endfor %}
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+
+                    <button type="submit" class="btn btn-success mt-3">Tính toán và xếp hạng</button>
+                </form>
+            </div>
+        </div>
+    </div>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>
