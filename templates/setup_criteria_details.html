@@ -1,0 +1,174 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Bước 2: Chi Tiết Tiêu Chí - AHP</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        body { background-color: #f8f9fa; }
+        .container { max-width: 900px; } 
+        .card { margin-top: 2rem; }
+        .table th, .table td { vertical-align: middle; text-align: center;}
+        .table thead th { background-color: #e9ecef; }
+        .table input[type="number"] { width: 80px; text-align: center;}
+        .table input[readonly].form-control-plaintext { background-color: #f8f9fa; border: none; }
+    </style>
+</head>
+<body data-num-criteria="{{ num_criteria if num_criteria is defined and num_criteria > 0 else '0' }}">
+
+    <div class="container">
+        <div class="card shadow-sm">
+            <div class="card-body p-4 p-md-5">
+                <h2 class="card-title text-center mb-2">Đợt tuyển dụng: {{ round_name|default('N/A') }}</h2>
+                <h3 class="text-center mb-4">Bước 2: Nhập Tên và So Sánh Cặp Tiêu Chí</h3>
+
+                {% with messages = get_flashed_messages(with_categories=true) %}
+                    {% if messages %}
+                        {% for category, message in messages %}
+                            <div class="alert alert-{{ category }} alert-dismissible fade show" role="alert">
+                                {{ message }}
+                                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                            </div>
+                        {% endfor %}
+                    {% endif %}
+                {% endwith %}
+
+                <form method="POST" action="{{ url_for('setup_criteria_details') }}">
+                    {% if num_criteria is defined and num_criteria > 0 %}
+                        <h4 class="mt-4 mb-3">Tên các tiêu chí ({{ num_criteria }})</h4>
+                        <div class="row g-3 mb-4">
+                            {% for i in range(num_criteria) %}
+                            <div class="col-md-6 col-lg-4">
+                                <label for="criterion_name_{{i}}" class="form-label">Tiêu chí {{i+1}}:</label>
+                                <input type="text" class="form-control" id="criterion_name_{{i}}" name="criterion_name_{{i}}" 
+                                       value="{{ criteria_names_input[i] if criteria_names_input and i < criteria_names_input|length else '' }}" required>
+                            </div>
+                            {% endfor %}
+                        </div>
+
+                        <h4 class="mb-3">Ma trận so sánh cặp các tiêu chí</h4>
+                        <p class="form-text">Sử dụng thang điểm Saaty (1-9) để so sánh. Ví dụ: nếu Tiêu chí A quan trọng hơn Tiêu chí B gấp 3 lần, nhập 3. Nếu ít quan trọng hơn, nhập 1/3 (ví dụ: 0.333).</p>
+                        <div class="table-responsive">
+                            <table class="table table-bordered">
+                                <thead>
+                                    <tr>
+                                        <th scope="col" class="bg-light">↓ So với →</th>
+                                        {% for i in range(num_criteria) %}
+                                        <th scope="col" class="text-truncate criteria-header-{{i}}" title="{{ criteria_names_input[i] if criteria_names_input and i < criteria_names_input|length else 'TC '+(i+1)|string }}">
+                                            {{ (criteria_names_input[i][:15] + '...' if criteria_names_input and i < criteria_names_input|length and criteria_names_input[i]|length > 15 else criteria_names_input[i]) if criteria_names_input and i < criteria_names_input|length and criteria_names_input[i] else 'TC '+(i+1)|string }}
+                                        </th>
+                                        {% endfor %}
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for i_loop_var in range(num_criteria) %}
+                                    <tr>
+                                        <th scope="row" class="bg-light text-truncate criteria-header-{{i_loop_var}}" title="{{ criteria_names_input[i_loop_var] if criteria_names_input and i_loop_var < criteria_names_input|length else 'TC '+(i_loop_var+1)|string }}">
+                                            {{ (criteria_names_input[i_loop_var][:15] + '...' if criteria_names_input and i_loop_var < criteria_names_input|length and criteria_names_input[i_loop_var]|length > 15 else criteria_names_input[i_loop_var]) if criteria_names_input and i_loop_var < criteria_names_input|length and criteria_names_input[i_loop_var] else 'TC '+(i_loop_var+1)|string }}
+                                        </th>
+                                        {% for j_loop_var in range(num_criteria) %}
+                                        <td>
+                                            {% if i_loop_var == j_loop_var %}
+                                            <input type="number" class="form-control-plaintext text-center" name="criteria_pairwise_{{i_loop_var}}_{{j_loop_var}}" value="1" readonly>
+                                            {% elif i_loop_var < j_loop_var %}
+                                            <input type="number" class="form-control pairwise-input" 
+                                                   name="criteria_pairwise_{{i_loop_var}}_{{j_loop_var}}" 
+                                                   value="{{ matrix_values_input[i_loop_var][j_loop_var] if matrix_values_input and i_loop_var < matrix_values_input|length and j_loop_var < matrix_values_input[i_loop_var]|length else '1.0' }}" 
+                                                   min="0.111" max="9" step="any" required
+                                                   data-row="{{i_loop_var}}" data-col="{{j_loop_var}}" data-prefix="criteria_pairwise_"> {# Bỏ oninput, thêm data attributes #}
+                                            {% else %}
+                                            <input type="number" class="form-control-plaintext text-center" 
+                                                   name="criteria_pairwise_{{i_loop_var}}_{{j_loop_var}}" 
+                                                   value="{{ matrix_values_input[i_loop_var][j_loop_var] if matrix_values_input and i_loop_var < matrix_values_input|length and j_loop_var < matrix_values_input[i_loop_var]|length else '1.0' }}" readonly tabindex="-1">
+                                            {% endif %}
+                                        </td>
+                                        {% endfor %}
+                                    </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                    {% else %}
+                        <div class="alert alert-warning" role="alert">
+                            Số lượng tiêu chí chưa được xác định hoặc không hợp lệ. Vui lòng <a href="{{ url_for('setup_criteria_count') }}" class="alert-link">quay lại bước trước</a>.
+                        </div>
+                    {% endif %} 
+
+                    <div class="d-grid gap-2 d-md-flex justify-content-md-end mt-4">
+                        <a href="{{ url_for('setup_criteria_count') }}" class="btn btn-outline-secondary me-md-2">Quay lại</a>
+                        {% if num_criteria is defined and num_criteria > 0 %}
+                        <button type="submit" class="btn btn-primary">Lưu Tiêu Chí và Tiếp Tục</button>
+                        {% else %}
+                        <button type="submit" class="btn btn-primary" disabled>Lưu Tiêu Chí và Tiếp Tục</button>
+                        {% endif %}
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        function updateDependent(element, r_val, c_val, prefix) {
+            const val = parseFloat(element.value);
+            if (val > 0) {
+                const dependentElement = document.querySelector(`input[name="${prefix}${c_val}_${r_val}"]`);
+                if (dependentElement) {
+                    let inverseVal = (1 / val);
+                    if (inverseVal % 1 !== 0) {
+                       inverseVal = parseFloat(inverseVal.toFixed(3));
+                    }
+                    dependentElement.value = inverseVal;
+                }
+            } else if (val === 0) { 
+                element.value = ''; 
+                const dependentElement = document.querySelector(`input[name="${prefix}${c_val}_${r_val}"]`);
+                if (dependentElement) {
+                    dependentElement.value = ''; 
+                }
+            }
+        }
+
+        document.addEventListener('DOMContentLoaded', function() {
+            const bodyElement = document.body;
+            const numCriteriaStr = bodyElement.getAttribute('data-num-criteria');
+            const numCriteria = parseInt(numCriteriaStr, 10); 
+
+            if (isNaN(numCriteria) || numCriteria <= 0) {
+                console.warn("JavaScript: Giá trị 'num_criteria' từ data attribute không hợp lệ hoặc bằng 0. Giá trị đọc được:", numCriteriaStr);
+            } else {
+                // Cập nhật header bảng
+                for (let i_loop = 0; i_loop < numCriteria; i_loop++) {
+                    const nameInput = document.getElementById(`criterion_name_${i_loop}`);
+                    if (nameInput) { 
+                        nameInput.addEventListener('input', function() {
+                            const headersToUpdate = document.querySelectorAll(`.criteria-header-${i_loop}`);
+                            headersToUpdate.forEach(header => {
+                                header.textContent = this.value.substring(0,15) + (this.value.length > 15 ? '...' : '');
+                                header.title = this.value;
+                            });
+                        });
+                        if (nameInput.value) {
+                             nameInput.dispatchEvent(new Event('input'));
+                        }
+                    }
+                }
+
+                // Gán event listener cho các ô input của ma trận
+                const pairwiseInputs = document.querySelectorAll('.pairwise-input');
+                pairwiseInputs.forEach(function(inputElement) {
+                    inputElement.addEventListener('input', function() {
+                        const row = parseInt(this.dataset.row, 10);
+                        const col = parseInt(this.dataset.col, 10);
+                        const prefix = this.dataset.prefix;
+                        // Chỉ gọi updateDependent nếu đây là ô nhập liệu chính (row < col)
+                        if (row < col) { 
+                            updateDependent(this, row, col, prefix);
+                        }
+                    });
+                });
+            }
+        });
+    </script>
+</body>
+</html>

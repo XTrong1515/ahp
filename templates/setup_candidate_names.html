@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Bước 4: Tên Ứng Viên - AHP</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        body { background-color: #f8f9fa; }
+        .container { max-width: 700px; }
+        .card { margin-top: 2rem; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="card shadow-sm">
+            <div class="card-body p-5">
+                <h2 class="card-title text-center mb-2">Đợt tuyển dụng: {{ round_name|default('N/A') }}</h2>
+                <h3 class="text-center mb-4">Bước 4: Nhập Tên Ứng Viên ({{ num_candidates }})</h3>
+
+                {% with messages = get_flashed_messages(with_categories=true) %}
+                    {% if messages %}
+                        {% for category, message in messages %}
+                            <div class="alert alert-{{ category }} alert-dismissible fade show" role="alert">
+                                {{ message }}
+                                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                            </div>
+                        {% endfor %}
+                    {% endif %}
+                {% endwith %}
+
+                <form method="POST" action="{{ url_for('setup_candidate_names') }}">
+                     <div class="row g-3">
+                        {% for i in range(num_candidates) %}
+                        <div class="col-12">
+                            <label for="candidate_name_{{i}}" class="form-label">Tên Ứng viên {{i+1}}:</label>
+                            <input type="text" class="form-control" id="candidate_name_{{i}}" name="candidate_name_{{i}}" 
+                                   value="{{ candidate_names_input[i] if candidate_names_input and i < candidate_names_input|length else '' }}" required>
+                        </div>
+                        {% endfor %}
+                    </div>
+                    <div class="d-grid gap-2 d-md-flex justify-content-md-end mt-4">
+                         <a href="{{ url_for('setup_candidates_count') }}" class="btn btn-outline-secondary me-md-2">Quay lại</a>
+                        <button type="submit" class="btn btn-primary">Tiếp tục So sánh Ứng viên</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

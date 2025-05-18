@@ -6,315 +6,69 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Hệ Hỗ Trợ Ra Quyết Định Chọn Nhân Sự - AHP</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
     <style>
         body {
             background-color: #f8f9fa;
         }
-
         .container {
-            max-width: 1200px;
+            max-width: 700px; /* Thu nhỏ container cho form đơn giản hơn */
         }
-
         .card {
             border-radius: 10px;
             box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
         }
-
-        .table th,
-        .table td {
-            vertical-align: middle;
-        }
-
-        .btn-primary {
-            background-color: #007bff;
-            border-color: #007bff;
-        }
-
-        .btn-primary:hover {
-            background-color: #0056b3;
-            border-color: #0056b3;
-        }
-
-        .btn-success {
-            background-color: #28a745;
-            border-color: #28a745;
-        }
-
-        .btn-success:hover {
-            background-color: #218838;
-            border-color: #218838;
-        }
-
-        .import-btn {
-            margin-bottom: 15px;
-        }
-
-        .file-input {
-            display: none;
-        }
+        /* Các CSS khác có thể giữ lại nếu cần cho layout chung */
     </style>
-    <script>
-        function handleImportCandidates(event) {
-            const file = event.target.files[0];
-            if (file) {
-                const reader = new FileReader();
-                reader.onload = function (e) {
-                    const data = new Uint8Array(e.target.result);
-                    const workbook = XLSX.read(data, { type: 'array' });
-
-                    // Lấy dữ liệu từ sheet đầu tiên
-                    const firstSheetName = workbook.SheetNames[0];
-                    const worksheet = workbook.Sheets[firstSheetName];
-
-                    // Chuyển đổi sang JSON
-                    const jsonData = XLSX.utils.sheet_to_json(worksheet, { header: 1 });
-
-                    // Điền dữ liệu vào form
-                    if (jsonData.length > 1) {
-                        // Bỏ qua hàng header (row 0)
-                        for (let i = 1; i < jsonData.length; i++) {
-                            const row = jsonData[i];
-                            if (row.length > 0 && row[0]) {
-                                const candidateIndex = i - 1;
-                                const nameInput = document.querySelector(`#candidate_${candidateIndex}`);
-                                if (nameInput) {
-                                    nameInput.value = row[0] || '';
-                                }
-                                for (let j = 1; j < row.length; j++) {
-                                    const criterionIndex = j - 1;
-                                    const valueInput = document.querySelector(`#candidate_${candidateIndex}_criterion_${criterionIndex}`);
-                                    if (valueInput) {
-                                        valueInput.value = row[j] || '';
-                                    }
-                                }
-                            }
-                        }
-                    }
-                };
-                reader.readAsArrayBuffer(file);
-            }
-        }
-
-        function handleImportCriteriaMatrix(event) {
-            const file = event.target.files[0];
-            if (file) {
-                const reader = new FileReader();
-                reader.onload = function (e) {
-                    const data = new Uint8Array(e.target.result);
-                    const workbook = XLSX.read(data, { type: 'array' });
-
-                    // Lấy dữ liệu từ sheet đầu tiên
-                    const firstSheetName = workbook.SheetNames[0];
-                    const worksheet = workbook.Sheets[firstSheetName];
-
-                    // Chuyển đổi sang JSON
-                    const jsonData = XLSX.utils.sheet_to_json(worksheet, { header: 1 });
-
-                    // Điền dữ liệu vào ma trận so sánh cặp
-                    if (jsonData.length > 1) {
-                        // Bỏ qua hàng header (row 0)
-                        for (let rowIndex = 1; rowIndex < jsonData.length; rowIndex++) {
-                            const row = jsonData[rowIndex];
-                            if (row.length > 1) {
-                                for (let colIndex = 1; colIndex < row.length; colIndex++) {
-                                    const valueInput = document.querySelector(`#pairwise_${rowIndex - 1}_${colIndex - 1}`);
-                                    if (valueInput && !valueInput.readOnly) {
-                                        valueInput.value = row[colIndex] || '1';
-                                    }
-                                }
-                            }
-                        }
-
-                        // Cập nhật các giá trị phụ thuộc trong ma trận
-                        updateDependentValues();
-                    }
-                };
-                reader.readAsArrayBuffer(file);
-            }
-        }
-
-        function updateDependentValues() {
-            const criteriaCount = document.querySelectorAll('.table-primary th').length - 1;
-
-            for (let i = 0; i < criteriaCount; i++) {
-                for (let j = 0; j < criteriaCount; j++) {
-                    if (i > j) {
-                        const valueInput = document.querySelector(`#pairwise_${i}_${j}`);
-                        const dependentInput = document.querySelector(`#pairwise_${j}_${i}`);
-
-                        if (valueInput && dependentInput && dependentInput.value) {
-                            const dependentValue = parseFloat(dependentInput.value);
-                            if (dependentValue > 0) {
-                                valueInput.value = (1 / dependentValue).toFixed(2);
-                            }
-                        }
-                    }
-                }
-            }
-        }
-
-        // Giúp các nút import kích hoạt input type file ẩn
-        function triggerFileInput(inputId) {
-            event.preventDefault(); // Ngăn chặn hành vi mặc định
-            document.getElementById(inputId).click();
-        }
-    </script>
-</head>
+    </head>
 
 <body>
     <div class="container mt-5">
-        <h1 class="text-center mb-4">Hệ Hỗ Trợ Ra Quyết Định Chọn Nhân Sự</h1>
+        <div class="card shadow-sm">
+            <div class="card-body p-5">
+                <h1 class="card-title text-center mb-4">Hệ Hỗ Trợ Ra Quyết Định Chọn Nhân Sự</h1>
+                <h3 class="text-center mb-4">Tạo Đợt Tuyển Dụng Mới</h3>
 
-        <div class="card mb-4">
-            <div class="card-body">
-                <h3 class="card-title mb-3">Tạo đợt tuyển dụng mới</h3>
-                <form method="POST" action="/">
-                    <div class="row g-3">
-                        <div class="col-md-4">
-                            <label for="round_name" class="form-label">Tên đợt tuyển dụng:</label>
-                            <input type="text" class="form-control" id="round_name" name="round_name"
-                                placeholder="Nhập tên đợt" value="{{ round_name if round_name }}" required>
-                        </div>
-                        <div class="col-md-4">
-                            <label for="position" class="form-label">Vị trí cần tuyển:</label>
-                            <input type="text" class="form-control" id="position" name="position"
-                                placeholder="Nhập vị trí" value="{{ position if position }}" required>
-                        </div>
-                        <div class="col-md-2">
-                            <label for="num_candidates" class="form-label">Số lượng ứng viên:</label>
-                            <input type="number" class="form-control" id="num_candidates" name="num_candidates" min="2"
-                                value="{{ num_candidates if num_candidates else 2 }}" required>
-                        </div>
-                        <div class="col-md-2 d-flex align-items-end">
-                            <button type="submit" class="btn btn-primary w-100">Tiếp tục</button>
-                        </div>
+                {% with messages = get_flashed_messages(with_categories=true) %}
+                    {% if messages %}
+                        {% for category, message in messages %}
+                            <div class="alert alert-{{ category }} alert-dismissible fade show" role="alert">
+                                {{ message }}
+                                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                            </div>
+                        {% endfor %}
+                    {% endif %}
+                {% endwith %}
+                
+                <form method="POST" action="{{ url_for('index_or_create_round') }}">
+                    <div class="mb-3">
+                        <label for="round_name" class="form-label">Tên đợt tuyển dụng:</label>
+                        <input type="text" class="form-control" id="round_name" name="round_name"
+                               placeholder="Ví dụ: Tuyển dụng Chuyên viên Marketing Q3" 
+                               value="{{ round_name if round_name else '' }}" required>
                     </div>
-                    <div class="mt-3">
-                        <label for="description" class="form-label">Mô tả:</label>
+                    <div class="mb-3">
+                        <label for="position" class="form-label">Vị trí cần tuyển:</label>
+                        <input type="text" class="form-control" id="position" name="position"
+                               placeholder="Ví dụ: Digital Marketing Specialist" 
+                               value="{{ position if position else '' }}" required>
+                    </div>
+                    <div class="mb-3">
+                        <label for="description" class="form-label">Mô tả (tùy chọn):</label>
                         <textarea class="form-control" id="description" name="description" rows="3"
-                            placeholder="Nhập mô tả (tùy chọn)">{{ description if description }}</textarea>
+                                  placeholder="Nhập mô tả chi tiết về đợt tuyển dụng">{{ description if description else '' }}</textarea>
+                    </div>
+                    <div class="d-grid mt-4">
+                        <button type="submit" class="btn btn-primary btn-lg">Tạo Đợt và Tiếp Tục Xác Định Tiêu Chí</button>
                     </div>
                 </form>
             </div>
         </div>
-
-        {% if num_candidates > 0 %}
-        <div class="card">
-            <div class="card-body">
-                <h3 class="card-title mb-4">Nhập thông tin ứng viên</h3>
-
-                <!-- Nút import Excel cho ứng viên -->
-                <div class="text-center import-btn">
-                    <button type="button" class="btn btn-info" onclick="triggerFileInput('import_candidates_excel')">
-                        <i class="bi bi-file-earmark-excel"></i> Import thông tin ứng viên từ Excel
-                    </button>
-                    <input type="file" class="file-input" id="import_candidates_excel" accept=".xlsx, .xls"
-                        onchange="handleImportCandidates(event)">
-                    <small class="d-block text-muted mt-2">File Excel phải có cấu trúc: Tên, {{ criteria|join(', ')
-                        }}</small>
-                </div>
-
-                {% if error_message %}
-                <div class="alert alert-danger" role="alert">
-                    {{ error_message }}
-                </div>
-                {% endif %}
-
-                <form method="POST" action="/input/{{ round_id if round_id else '' }}">
-                    <input type="hidden" name="num_candidates" value="{{ num_candidates }}">
-
-                    <h4 class="mb-3">Thông tin ứng viên</h4>
-                    {% for i in range(num_candidates) %}
-                    <div class="card mb-3">
-                        <div class="card-body">
-                            <div class="mb-3">
-                                <label class="form-label">Tên ứng viên {{ i + 1 }}:</label>
-                                <input type="text" class="form-control" id="candidate_{{ i }}" name="candidate_{{ i }}"
-                                    placeholder="Nhập họ tên"
-                                    value="{{ candidates_data[i]['name'] if candidates_data and i < candidates_data|length }}"
-                                    required>
-                            </div>
-                            <div class="row g-3">
-                                {% for j in range(criteria|length) %}
-                                <div class="col-md-4">
-                                    <label class="form-label">{{ criteria[j] }} (0-{{ optimal_values[j] }}):</label>
-                                    <input type="number" class="form-control" id="candidate_{{ i }}_criterion_{{ j }}"
-                                        name="candidate_{{ i }}_criterion_{{ j }}" min="0" max="{{ optimal_values[j] }}"
-                                        step="0.1" placeholder="Nhập giá trị"
-                                        value="{{ candidates_data[i]['values'][j] if candidates_data and i < candidates_data|length and j < candidates_data[i]['values']|length }}"
-                                        required>
-                                </div>
-                                {% endfor %}
-                            </div>
-                        </div>
-                    </div>
-                    {% endfor %}
-
-                    <h4 class="mb-3">Ma trận so sánh cặp tiêu chí</h4>
-
-                    <!-- Nút import Excel cho ma trận so sánh -->
-                    <div class="text-center import-btn">
-                        <button type="button" class="btn btn-info"
-                            onclick="triggerFileInput('import_criteria_matrix_excel')">
-                            <i class="bi bi-file-earmark-excel"></i> Import ma trận so sánh từ Excel
-                        </button>
-                        <input type="file" class="file-input" id="import_criteria_matrix_excel" accept=".xlsx, .xls"
-                            onchange="handleImportCriteriaMatrix(event)">
-                        <small class="d-block text-muted mt-2">File Excel phải có cấu trúc ma trận với header: , {{
-                            criteria|join(', ') }}</small>
-                    </div>
-
-                    <div class="table-responsive">
-                        <table class="table table-bordered table-hover">
-                            <thead class="table-primary">
-                                <tr>
-                                    <th scope="col"></th>
-                                    {% for criterion in criteria %}
-                                    <th scope="col">{{ criterion }}</th>
-                                    {% endfor %}
-                                </tr>
-                            </thead>
-                            <tbody>
-                                {% for i in range(criteria|length) %}
-                                <tr>
-                                    <th scope="row">{{ criteria[i] }}</th>
-                                    {% for j in range(criteria|length) %}
-                                    <td>
-                                        {% if i == j %}
-                                        <input type="number" class="form-control form-control-sm"
-                                            id="pairwise_{{ i }}_{{ j }}" name="pairwise_{{ i }}_{{ j }}" value="1"
-                                            readonly>
-                                        {% elif i < j %} <input type="number" class="form-control form-control-sm"
-                                            id="pairwise_{{ i }}_{{ j }}" name="pairwise_{{ i }}_{{ j }}"
-                                            value="{{ pairwise[i][j] if pairwise and i < pairwise|length and j < pairwise[i]|length }}"
-                                            min="0.1" max="9" step="0.1" required onchange="updateDependentValues()">
-                                            {% else %}
-                                            <input type="number" class="form-control form-control-sm"
-                                                id="pairwise_{{ i }}_{{ j }}" name="pairwise_{{ i }}_{{ j }}"
-                                                value="{{ pairwise[i][j] if pairwise and i < pairwise|length and j < pairwise[i]|length else (1/pairwise[j][i])|round(2) if pairwise and j < pairwise|length and i < pairwise[j]|length }}"
-                                                readonly>
-                                            {% endif %}
-                                    </td>
-                                    {% endfor %}
-                                </tr>
-                                {% endfor %}
-                            </tbody>
-                        </table>
-                    </div>
-
-                    <button type="submit" class="btn btn-success mt-3">Tính toán và xếp hạng</button>
-                </form>
-            </div>
-        </div>
-        {% endif %}
 
         <div class="mt-4 text-center">
-            <a href="/history" class="btn btn-outline-primary">Xem lịch sử đợt tuyển dụng</a>
+            <a href="{{ url_for('history') }}" class="btn btn-outline-secondary">Xem lịch sử đợt tuyển dụng</a>
         </div>
     </div>
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 </body>
-
 </html>

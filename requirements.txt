@@ -2,3 +2,9 @@ flask
 flask-sqlalchemy
 pymysql
 numpy
+fpdf
+seaborn 
+matplotlib
+pandas
+openpyxl
+cryptography
